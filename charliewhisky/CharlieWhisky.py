@@ -1,15 +1,17 @@
 import numpy
-import sounddevice as sd
+import simpleaudio as sa
 import time
 
 
 class CharlieWhisky:
 
-    def __init__(self, volume=0.5, samplerate=22050, dit_duration_ms=180, frequency=1660.0, debug=False):
-        self.volume = volume
+    def __init__(self, samplerate=22050, dit_duration_ms=180, frequency=1660.0, debug=False):
         self.samplerate = samplerate
         self.frequency = frequency
         self.dit_duration = dit_duration_ms / 1000
+        self.dah_duration = self.dit_duration * 3
+        self.space_letter_duration = self.dit_duration * 3
+        self.space_word_duration = self.dit_duration * 7
         self.words_per_minute = 1200 / dit_duration_ms
         self.debug = debug
 
@@ -32,28 +34,28 @@ class CharlieWhisky:
 
 
     def dit(self):
-        duration = numpy.arange(int(numpy.ceil(self.dit_duration * self.samplerate))) / self.samplerate
-        dit = self.volume * numpy.sin(numpy.pi*self.frequency*duration)
-        sd.play(dit, self.samplerate, blocking=True)
+        t = numpy.linspace(0, self.dit_duration, self.dit_duration * self.samplerate, False)
+        sine = numpy.sin(self.frequency * t * 2 * numpy.pi)
+        audio = numpy.hstack((sine))
+        audio *= 32767 / numpy.max(numpy.abs(audio))
+        audio = audio.astype(numpy.int16)
+        play_obj = sa.play_buffer(audio, 1, 2, self.samplerate)
+        play_obj.wait_done()
 
     def dah(self):
-        duration = numpy.arange(int(numpy.ceil(self.dit_duration * 3 * self.samplerate))) / self.samplerate
-        #dah = self.volume * numpy.sin(numpy.pi*(self.frequency-10)*duration)
-        dah = self.volume * numpy.sin(numpy.pi*(self.frequency)*duration)
-        sd.play(dah, self.samplerate, blocking=True)
+        t = numpy.linspace(0, self.dah_duration, self.dah_duration * self.samplerate, False)
+        sine = numpy.sin(self.frequency * t * 2 * numpy.pi)
+        audio = numpy.hstack((sine))
+        audio *= 32767 / numpy.max(numpy.abs(audio))
+        audio = audio.astype(numpy.int16)
+        play_obj = sa.play_buffer(audio, 1, 2, self.samplerate)
+        play_obj.wait_done()
 
     def space_letter(self):
-        duration = numpy.arange(int(numpy.ceil(self.dit_duration * 3 * self.samplerate))) / self.samplerate
-        space = self.volume * numpy.sin(numpy.pi*1*duration)
-        sd.play(space, self.samplerate, blocking=True)
+        time.sleep(self.space_letter_duration)
 
     def space_word(self):
-        duration = numpy.arange(int(numpy.ceil(self.dit_duration * 7 * self.samplerate))) / self.samplerate
-        space = self.volume * numpy.sin(numpy.pi*0*duration)
-        sd.play(space, self.samplerate, blocking=True)
-
-    def space_units(self):
-        time.sleep(self.dit_duration)
+        time.sleep(self.space_word_duration)
 
     def play_letter(self, letter):
         morse = self.letter_dictionary[letter.upper()]
