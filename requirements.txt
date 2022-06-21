@@ -1,7 +1,7 @@
 backcall==0.1.0
 cffi==1.12.2
 decorator==4.3.2
-numpy==1.16.2
+numpy==1.22.0
 parso==0.3.4
 pexpect==4.6.0
 pickleshare==0.7.5
